@@ -567,6 +567,22 @@ var resourceCloudflareZoneSettingsSchema = map[string]*schema.Schema{
 			},
 		},
 	},
+
+	"aegis": {
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MinItems: 1,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"pool_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+			},
+		},
+	},
 }
 
 var resourceCloudflareZoneSettingsSchemaV0 = map[string]*schema.Schema{
