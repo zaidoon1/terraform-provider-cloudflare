@@ -53,6 +53,7 @@ var fetchAsSingleSetting = []string{
 	"speed_brain",
 	"ssl_automatic_mode",
 	"aegis",
+	"origin_h2_max_streams",
 }
 
 func resourceCloudflareZoneSettingsOverrideCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

@@ -42,6 +42,7 @@ func TestAccCloudflareZoneSettingsOverride_Full(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "settings.0.h2_prioritization", "on"),
 					resource.TestCheckResourceAttr(name, "settings.0.fonts", "on"),
 					resource.TestCheckResourceAttr(name, "settings.0.origin_max_http_version", "2"),
+					resource.TestCheckResourceAttr(name, "settings.0.origin_h2_max_streams", "50"),
 					resource.TestCheckResourceAttr(name, "settings.0.zero_rtt", "off"),
 					resource.TestCheckResourceAttr(name, "settings.0.universal_ssl", "off"),
 					resource.TestCheckResourceAttr(name, "settings.0.ciphers.#", "2"),
@@ -110,9 +111,10 @@ func testAccCheckCloudflareZoneSettings(n string) resource.TestCheckFunc {
 		for _, zs := range foundZone.Result {
 			if zs.ID == "brotli" && zs.Value == "on" ||
 				zs.ID == "challenge_ttl" && zs.Value == float64(2700) ||
+				zs.ID == "origin_h2_max_streams" && zs.Value == float64(50) ||
 				zs.ID == "security_level" && zs.Value == "high" {
 				foundSettings[zs.ID] = zs.Value
-			} else if zs.ID == "brotli" || zs.ID == "challenge_ttl" || zs.ID == "security_level" {
+			} else if zs.ID == "brotli" || zs.ID == "challenge_ttl" || zs.ID == "security_level" || zs.ID == "origin_h2_max_streams" {
 				return fmt.Errorf("unexpected value for %q at API: %#v", zs.ID, zs.Value)
 			}
 		}
@@ -207,6 +209,7 @@ resource "cloudflare_zone_settings_override" "%[1]s" {
 		h2_prioritization = "on"
 		fonts = "on"
 		origin_max_http_version = "2"
+		origin_h2_max_streams = 50
 		universal_ssl = "off"
 		security_header {
 			enabled = true

@@ -74,6 +74,7 @@ resource "cloudflare_zone_settings_override" "test" {
 - `zone_type` (String)
 
 <a id="nestedblock--settings"></a>
+
 ### Nested Schema for `settings`
 
 Optional:
@@ -113,6 +114,7 @@ Optional:
 - `opportunistic_onion` (String)
 - `orange_to_orange` (String)
 - `origin_error_page_pass_thru` (String)
+- `origin_h2_max_streams` (Number)
 - `origin_max_http_version` (String)
 - `polish` (String)
 - `prefetch_preload` (String)
@@ -141,6 +143,7 @@ Optional:
 - `zero_rtt` (String)
 
 <a id="nestedblock--settings--aegis"></a>
+
 ### Nested Schema for `settings.aegis`
 
 Optional:
@@ -148,8 +151,8 @@ Optional:
 - `enabled` (Boolean) Whether Aegis zone setting is enabled. Defaults to `true`.
 - `pool_id` (String) Egress pool id which refers to a grouping of dedicated egress IPs through which Cloudflare will connect to origin.
 
-
 <a id="nestedblock--settings--minify"></a>
+
 ### Nested Schema for `settings.minify`
 
 Required:
@@ -158,8 +161,8 @@ Required:
 - `html` (String)
 - `js` (String)
 
-
 <a id="nestedblock--settings--mobile_redirect"></a>
+
 ### Nested Schema for `settings.mobile_redirect`
 
 Required:
@@ -168,16 +171,16 @@ Required:
 - `status` (String)
 - `strip_uri` (Boolean)
 
-
 <a id="nestedblock--settings--nel"></a>
+
 ### Nested Schema for `settings.nel`
 
 Required:
 
 - `enabled` (Boolean)
 
-
 <a id="nestedblock--settings--security_header"></a>
+
 ### Nested Schema for `settings.security_header`
 
 Optional:
@@ -188,9 +191,8 @@ Optional:
 - `nosniff` (Boolean)
 - `preload` (Boolean)
 
-
-
 <a id="nestedatt--initial_settings"></a>
+
 ### Nested Schema for `initial_settings`
 
 Read-Only:
@@ -230,6 +232,7 @@ Read-Only:
 - `opportunistic_onion` (String)
 - `orange_to_orange` (String)
 - `origin_error_page_pass_thru` (String)
+- `origin_h2_max_streams` (Number)
 - `origin_max_http_version` (String)
 - `polish` (String)
 - `prefetch_preload` (String)
@@ -258,6 +261,7 @@ Read-Only:
 - `zero_rtt` (String)
 
 <a id="nestedobjatt--initial_settings--aegis"></a>
+
 ### Nested Schema for `initial_settings.aegis`
 
 Read-Only:
@@ -265,8 +269,8 @@ Read-Only:
 - `enabled` (Boolean)
 - `pool_id` (String)
 
-
 <a id="nestedobjatt--initial_settings--minify"></a>
+
 ### Nested Schema for `initial_settings.minify`
 
 Read-Only:
@@ -275,8 +279,8 @@ Read-Only:
 - `html` (String)
 - `js` (String)
 
-
 <a id="nestedobjatt--initial_settings--mobile_redirect"></a>
+
 ### Nested Schema for `initial_settings.mobile_redirect`
 
 Read-Only:
@@ -285,16 +289,16 @@ Read-Only:
 - `status` (String)
 - `strip_uri` (Boolean)
 
-
 <a id="nestedobjatt--initial_settings--nel"></a>
+
 ### Nested Schema for `initial_settings.nel`
 
 Read-Only:
 
 - `enabled` (Boolean)
 
-
 <a id="nestedobjatt--initial_settings--security_header"></a>
+
 ### Nested Schema for `initial_settings.security_header`
 
 Read-Only:

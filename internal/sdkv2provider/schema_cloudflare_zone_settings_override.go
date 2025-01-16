@@ -261,6 +261,13 @@ var resourceCloudflareZoneSettingsSchema = map[string]*schema.Schema{
 		ValidateFunc: validation.StringInSlice([]string{"1", "2"}, false),
 	},
 
+	"origin_h2_max_streams": {
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validation.IntBetween(1, 200),
+	},
+
 	"polish": {
 		Type:         schema.TypeString,
 		Optional:     true,
@@ -803,6 +810,13 @@ var resourceCloudflareZoneSettingsSchemaV0 = map[string]*schema.Schema{
 		ValidateFunc: validation.StringInSlice([]string{"1", "2"}, false),
 	},
 
+	"origin_h2_max_streams": {
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validation.IntBetween(1, 200),
+	},
+
 	"polish": {
 		Type:         schema.TypeString,
 		Optional:     true,
@@ -1299,6 +1313,13 @@ var resourceCloudflareZoneSettingsSchemaV1 = map[string]*schema.Schema{
 		Optional:     true,
 		Computed:     true,
 		ValidateFunc: validation.StringInSlice([]string{"1", "2"}, false),
+	},
+
+	"origin_h2_max_streams": {
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validation.IntBetween(1, 200),
 	},
 
 	"polish": {
