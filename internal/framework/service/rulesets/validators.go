@@ -64,7 +64,7 @@ func (v EdgeTTLValidator) ValidateObject(ctx context.Context, req validator.Obje
 	}
 
 	if parameter.Mode.ValueString() == "override_origin" {
-		if parameter.Default.ValueInt64() <= 0 {
+		if parameter.Default.ValueInt64() < 0 {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				errInvalidConfiguration,

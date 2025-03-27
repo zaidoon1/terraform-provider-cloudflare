@@ -75,6 +75,21 @@ func TestEdgeTTLValidation(t *testing.T) {
 					t.Errorf("unexpected difference: %s", diff)
 				}
 			})
+
+			t.Run("ttl value of 0 is valid", func(t *testing.T) {
+				t.Parallel()
+
+				resp := &validator.ObjectResponse{}
+				req := constructEdgeTTLObjectRequest("override_origin", big.NewFloat(0))
+				edgeValidator.ValidateObject(ctx, req, resp)
+
+				expected := &validator.ObjectResponse{
+					Diagnostics: nil,
+				}
+				if diff := cmp.Diff(resp, expected); diff != "" {
+					t.Errorf("unexpected difference: %s", diff)
+				}
+			})
 		})
 
 		t.Run("respect_origin mode is specified", func(t *testing.T) {
