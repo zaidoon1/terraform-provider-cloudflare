@@ -1532,6 +1532,61 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										},
 									},
 								},
+								"vary": schema.SingleNestedAttribute{
+									Description: "Configure Vary header support for controlling how responses are cached based on request headers. Allows specifying which headers to vary on and how to normalize their values.",
+									Optional:    true,
+									Validators: []validator.Object{
+										customvalidator.RequiresOtherStringAttributeToBe(
+											path.MatchRelative().AtParent().AtParent().AtName("action"),
+											"set_cache_settings",
+										),
+									},
+									CustomType: customfield.NewNestedObjectType[RulesetRulesActionParametersVaryModel](ctx),
+									Attributes: map[string]schema.Attribute{
+										"default": schema.SingleNestedAttribute{
+											Description: "The default action to apply to headers not listed in the headers map. Required when headers is specified.",
+											Optional:    true,
+											CustomType:  customfield.NewNestedObjectType[RulesetRulesActionParametersVaryDefaultModel](ctx),
+											Attributes: map[string]schema.Attribute{
+												"action": schema.StringAttribute{
+													Description: "The default action for unlisted headers.\nAvailable values: \"normalize\", \"passthrough\", \"bypass\".",
+													Required:    true,
+													Validators: []validator.String{
+														stringvalidator.OneOfCaseInsensitive("normalize", "passthrough", "bypass"),
+													},
+												},
+											},
+										},
+										"headers": schema.MapNestedAttribute{
+											Description: "A map of header names to their vary configuration. Known headers like \"accept\" and \"accept-language\" support additional normalization parameters.",
+											Optional:    true,
+											CustomType:  customfield.NewNestedObjectMapType[RulesetRulesActionParametersVaryHeaderModel](ctx),
+											NestedObject: schema.NestedAttributeObject{
+												Attributes: map[string]schema.Attribute{
+													"action": schema.StringAttribute{
+														Description: "The action for this header.\nAvailable values: \"normalize\", \"passthrough\", \"bypass\".",
+														Required:    true,
+														Validators: []validator.String{
+															stringvalidator.OneOfCaseInsensitive("normalize", "passthrough", "bypass"),
+														},
+													},
+													"media_types": schema.ListAttribute{
+														Description: "A list of MIME types to include when normalizing the Accept header. Only applicable when the header name is \"accept\" and action is \"normalize\".",
+														Optional:    true,
+														CustomType:  customfield.NewListType[types.String](ctx),
+														ElementType: types.StringType,
+													},
+													"languages": schema.ListAttribute{
+														Description: "A list of languages to include when normalizing the Accept-Language header. Only applicable when the header name is \"accept-language\" and action is \"normalize\".",
+														Optional:    true,
+														CustomType:  customfield.NewListType[types.String](ctx),
+														ElementType: types.StringType,
+													},
+												},
+											},
+										},
+									},
+								},
 								"strip_etags": schema.BoolAttribute{
 									Description: "Whether to strip the ETag header from the response.",
 									Optional:    true,

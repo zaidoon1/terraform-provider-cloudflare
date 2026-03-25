@@ -8078,3 +8078,390 @@ func TestAccCloudflareRuleset_SetCacheTagsRules(t *testing.T) {
 		},
 	})
 }
+
+func TestAccCloudflareRuleset_SetCacheSettingsVaryRules(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acctest.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: acctest.TestAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				// Step 1: Create with full vary config - accept (normalize+media_types),
+				// accept-language (normalize+languages), custom header (passthrough), default (bypass)
+				ConfigFile:      config.TestNameFile("1.tf"),
+				ConfigVariables: configVariables,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							"cloudflare_ruleset.my_ruleset",
+							plancheck.ResourceActionCreate,
+						),
+						plancheck.ExpectKnownValue(
+							"cloudflare_ruleset.my_ruleset",
+							tfjsonpath.New("rules"),
+							knownvalue.ListExact([]knownvalue.Check{
+								knownvalue.ObjectPartial(map[string]knownvalue.Check{
+									"action": knownvalue.StringExact("set_cache_settings"),
+									"action_parameters": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+										"cache": knownvalue.Bool(true),
+										"vary": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+											"default": knownvalue.ObjectExact(map[string]knownvalue.Check{
+												"action": knownvalue.StringExact("bypass"),
+											}),
+											"headers": knownvalue.MapExact(map[string]knownvalue.Check{
+												"accept": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("normalize"),
+													"media_types": knownvalue.ListExact([]knownvalue.Check{
+														knownvalue.StringExact("image/webp"),
+														knownvalue.StringExact("image/avif"),
+													}),
+												}),
+												"accept-language": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("normalize"),
+													"languages": knownvalue.ListExact([]knownvalue.Check{
+														knownvalue.StringExact("en"),
+														knownvalue.StringExact("de"),
+														knownvalue.StringExact("fr"),
+													}),
+												}),
+												"x-custom-header": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("passthrough"),
+												}),
+											}),
+										}),
+									}),
+								}),
+							}),
+						),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("default").AtMapKey("action"),
+						knownvalue.StringExact("bypass"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("action"),
+						knownvalue.StringExact("normalize"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("media_types"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("image/webp"),
+							knownvalue.StringExact("image/avif"),
+						}),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept-language").AtMapKey("action"),
+						knownvalue.StringExact("normalize"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept-language").AtMapKey("languages"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("en"),
+							knownvalue.StringExact("de"),
+							knownvalue.StringExact("fr"),
+						}),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("x-custom-header").AtMapKey("action"),
+						knownvalue.StringExact("passthrough"),
+					),
+					// Data source checks
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("default").AtMapKey("action"),
+						knownvalue.StringExact("bypass"),
+					),
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("action"),
+						knownvalue.StringExact("normalize"),
+					),
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("media_types"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("image/webp"),
+							knownvalue.StringExact("image/avif"),
+						}),
+					),
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("x-custom-header").AtMapKey("action"),
+						knownvalue.StringExact("passthrough"),
+					),
+				},
+			},
+			{
+				// Step 2: Update - change default to normalize, modify headers list,
+				// add new custom headers, remove old custom header
+				ConfigFile:      config.TestNameFile("2.tf"),
+				ConfigVariables: configVariables,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							"cloudflare_ruleset.my_ruleset",
+							plancheck.ResourceActionUpdate,
+						),
+						plancheck.ExpectKnownValue(
+							"cloudflare_ruleset.my_ruleset",
+							tfjsonpath.New("rules"),
+							knownvalue.ListExact([]knownvalue.Check{
+								knownvalue.ObjectPartial(map[string]knownvalue.Check{
+									"action": knownvalue.StringExact("set_cache_settings"),
+									"action_parameters": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+										"cache": knownvalue.Bool(true),
+										"vary": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+											"default": knownvalue.ObjectExact(map[string]knownvalue.Check{
+												"action": knownvalue.StringExact("normalize"),
+											}),
+											"headers": knownvalue.MapExact(map[string]knownvalue.Check{
+												"accept": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("normalize"),
+													"media_types": knownvalue.ListExact([]knownvalue.Check{
+														knownvalue.StringExact("image/webp"),
+														knownvalue.StringExact("image/avif"),
+														knownvalue.StringExact("image/jpeg"),
+													}),
+												}),
+												"accept-language": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("normalize"),
+													"languages": knownvalue.ListExact([]knownvalue.Check{
+														knownvalue.StringExact("en"),
+														knownvalue.StringExact("de"),
+													}),
+												}),
+												"x-device-type": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("passthrough"),
+												}),
+												"x-region": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("bypass"),
+												}),
+											}),
+										}),
+									}),
+								}),
+							}),
+						),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("default").AtMapKey("action"),
+						knownvalue.StringExact("normalize"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("media_types"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("image/webp"),
+							knownvalue.StringExact("image/avif"),
+							knownvalue.StringExact("image/jpeg"),
+						}),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept-language").AtMapKey("languages"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("en"),
+							knownvalue.StringExact("de"),
+						}),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("x-device-type").AtMapKey("action"),
+						knownvalue.StringExact("passthrough"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("x-region").AtMapKey("action"),
+						knownvalue.StringExact("bypass"),
+					),
+					// Data source checks
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("default").AtMapKey("action"),
+						knownvalue.StringExact("normalize"),
+					),
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("x-region").AtMapKey("action"),
+						knownvalue.StringExact("bypass"),
+					),
+				},
+			},
+			{
+				// Step 3: Update - simplify to passthrough for all headers, no normalization params
+				ConfigFile:      config.TestNameFile("3.tf"),
+				ConfigVariables: configVariables,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							"cloudflare_ruleset.my_ruleset",
+							plancheck.ResourceActionUpdate,
+						),
+						plancheck.ExpectKnownValue(
+							"cloudflare_ruleset.my_ruleset",
+							tfjsonpath.New("rules"),
+							knownvalue.ListExact([]knownvalue.Check{
+								knownvalue.ObjectPartial(map[string]knownvalue.Check{
+									"action": knownvalue.StringExact("set_cache_settings"),
+									"action_parameters": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+										"cache": knownvalue.Bool(true),
+										"vary": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+											"default": knownvalue.ObjectExact(map[string]knownvalue.Check{
+												"action": knownvalue.StringExact("passthrough"),
+											}),
+											"headers": knownvalue.MapExact(map[string]knownvalue.Check{
+												"accept": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("passthrough"),
+												}),
+												"accept-language": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("passthrough"),
+												}),
+											}),
+										}),
+									}),
+								}),
+							}),
+						),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("default").AtMapKey("action"),
+						knownvalue.StringExact("passthrough"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("action"),
+						knownvalue.StringExact("passthrough"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept-language").AtMapKey("action"),
+						knownvalue.StringExact("passthrough"),
+					),
+					// Data source checks
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("default").AtMapKey("action"),
+						knownvalue.StringExact("passthrough"),
+					),
+				},
+			},
+			{
+				// Step 4: Update - remove vary entirely (set_cache_settings without vary)
+				ConfigFile:      config.TestNameFile("4.tf"),
+				ConfigVariables: configVariables,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							"cloudflare_ruleset.my_ruleset",
+							plancheck.ResourceActionUpdate,
+						),
+						plancheck.ExpectKnownValue(
+							"cloudflare_ruleset.my_ruleset",
+							tfjsonpath.New("rules"),
+							knownvalue.ListExact([]knownvalue.Check{
+								knownvalue.ObjectPartial(map[string]knownvalue.Check{
+									"action": knownvalue.StringExact("set_cache_settings"),
+									"action_parameters": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+										"cache": knownvalue.Bool(true),
+										"vary":  knownvalue.Null(),
+									}),
+								}),
+							}),
+						),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary"),
+						knownvalue.Null(),
+					),
+					// Data source checks
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary"),
+						knownvalue.Null(),
+					),
+				},
+			},
+			{
+				// Step 5: Re-add vary with only accept header and media_types (minimal config)
+				ConfigFile:      config.TestNameFile("5.tf"),
+				ConfigVariables: configVariables,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							"cloudflare_ruleset.my_ruleset",
+							plancheck.ResourceActionUpdate,
+						),
+						plancheck.ExpectKnownValue(
+							"cloudflare_ruleset.my_ruleset",
+							tfjsonpath.New("rules"),
+							knownvalue.ListExact([]knownvalue.Check{
+								knownvalue.ObjectPartial(map[string]knownvalue.Check{
+									"action": knownvalue.StringExact("set_cache_settings"),
+									"action_parameters": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+										"cache": knownvalue.Bool(true),
+										"vary": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+											"default": knownvalue.ObjectExact(map[string]knownvalue.Check{
+												"action": knownvalue.StringExact("bypass"),
+											}),
+											"headers": knownvalue.MapExact(map[string]knownvalue.Check{
+												"accept": knownvalue.ObjectPartial(map[string]knownvalue.Check{
+													"action": knownvalue.StringExact("normalize"),
+													"media_types": knownvalue.ListExact([]knownvalue.Check{
+														knownvalue.StringExact("image/webp"),
+													}),
+												}),
+											}),
+										}),
+									}),
+								}),
+							}),
+						),
+					},
+				},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("default").AtMapKey("action"),
+						knownvalue.StringExact("bypass"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("action"),
+						knownvalue.StringExact("normalize"),
+					),
+					statecheck.ExpectKnownValue(
+						"cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("media_types"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("image/webp"),
+						}),
+					),
+					// Data source checks
+					statecheck.ExpectKnownValue(
+						"data.cloudflare_ruleset.my_ruleset",
+						tfjsonpath.New("rules").AtSliceIndex(0).AtMapKey("action_parameters").AtMapKey("vary").AtMapKey("headers").AtMapKey("accept").AtMapKey("media_types"),
+						knownvalue.ListExact([]knownvalue.Check{
+							knownvalue.StringExact("image/webp"),
+						}),
+					),
+				},
+			},
+		},
+	})
+}
