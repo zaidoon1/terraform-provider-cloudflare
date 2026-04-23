@@ -1541,7 +1541,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 													Description: "The default action for unlisted headers.\nAvailable values: \"normalize\", \"passthrough\", \"bypass\".",
 													Computed:    true,
 													Validators: []validator.String{
-														stringvalidator.OneOfCaseInsensitive("normalize", "passthrough", "bypass"),
+														stringvalidator.OneOf("normalize", "passthrough", "bypass"),
 													},
 												},
 											},
@@ -1556,7 +1556,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 														Description: "The action for this header.\nAvailable values: \"normalize\", \"passthrough\", \"bypass\".",
 														Computed:    true,
 														Validators: []validator.String{
-															stringvalidator.OneOfCaseInsensitive("normalize", "passthrough", "bypass"),
+															stringvalidator.OneOf("normalize", "passthrough", "bypass"),
 														},
 													},
 													"media_types": schema.ListAttribute{
