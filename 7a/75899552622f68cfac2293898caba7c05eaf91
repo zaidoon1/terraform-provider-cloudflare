@@ -1,0 +1,31 @@
+docs/data-sources/ruleset.md
+  s_d2ad5b948ed121::t_da019070d87c08 110,448-456
+docs/resources/ruleset.md
+  s_d2ad5b948ed121::t_54f0bb039413c1 128,505-513
+internal/services/ruleset/data_source_model.go
+  s_d2ad5b948ed121::t_b8b46fdc72a02d 116,316-319
+internal/services/ruleset/data_source_schema.go
+  s_d2ad5b948ed121::t_94eb6105e7e572 1534-1553
+internal/services/ruleset/migration/v500/model.go
+  s_d2ad5b948ed121::t_5acdca7f3bba3e 324-338,591-594
+internal/services/ruleset/model.go
+  s_d2ad5b948ed121::t_3813fc5f1dad33 106,305-308
+internal/services/ruleset/schema.go
+  s_d2ad5b948ed121::t_89dd55ce0ad9ef 1545-1564
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "7a75899552622f68cfac2293898caba7c05eaf91",
+  "prompts": {},
+  "sessions": {
+    "s_d2ad5b948ed121": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a046d3-8924-7661-bb44-e42fea1ca1ac",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "zaidoon <zaidoon@cloudflare.com>"
+    }
+  }
+}
